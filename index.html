@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Influencer CPA Calculator — Displate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #005EFF;
+    --red: #EA0307;
+    --cyan: #55FCFF;
+    --orange: #FF7B00;
+    --lime: #D9FF00;
+    --bg: #0D0D0D;
+    --surface: #161616;
+    --surface2: #1E1E1E;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #F4F2EB;
+    --muted: rgba(244,242,235,0.45);
+    --dimmed: rgba(244,242,235,0.2);
+    --green: #1D9E75;
+    --amber: #BA7517;
+    --danger: #E24B4A;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Password Protection Styles */
+  .password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  .password-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    max-width: 400px;
+    width: 90%;
+  }
+  .password-box h2 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--cyan);
+  }
+  .password-box p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+  .password-box input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+  .password-box input:focus {
+    outline: none;
+    border-color: var(--cyan);
+  }
+  .password-box button {
+    width: 100%;
+    padding: 12px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .password-box button:hover {
+    background: #0052e0;
+  }
+  .password-error {
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(13,13,13,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .logo-mark {
+    width: 24px;
+    height: 24px;
+    background: var(--blue);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-mark svg { width: 14px; height: 14px; }
+
+  .header-title {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+
+  /* Layout */
+  .main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  .page-title {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .page-title span { color: var(--blue); }
+
+  .page-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 40px;
+    max-width: 480px;
+    line-height: 1.6;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Two-col layout */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 680px) {
+    .grid { grid-template-columns: 1fr; }
+    .main { padding: 24px 20px 60px; }
+    .header { padding: 14px 20px; }
+    .page-title { font-size: 28px; }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+
+  .card + .card { margin-top: 0; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Sliders */
+  .slider-group { margin-bottom: 14px; }
+
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .slider-name {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .slider-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-width: 72px;
+    text-align: right;
+  }
+
+  input[type=range] {
+    width: 100%;
+    height: 2px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border2);
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 4px rgba(0,94,255,0.2);
+  }
+
+  input[type=range]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    border: none;
+  }
+
+  /* Results panel */
+  .results-col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Big number */
+  .big-metric {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .big-metric-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .big-metric-value {
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+
+  .big-metric-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .big-metric-accent {
+    position: absolute;
+    top: 0; right: 0;
+    width: 3px;
+    height: 100%;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    transition: background 0.3s;
+  }
+
+  /* Metric grid */
+  .mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mini-metric {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+
+  .mini-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .mini-value {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    transition: color 0.3s;
+  }
+
+  /* Verdict */
+  .verdict {
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    line-height: 1.5;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+    border: 1px solid transparent;
+  }
+
+  .verdict.ok { background: rgba(29,158,117,0.1); color: #4DD4A8; border-color: rgba(29,158,117,0.25); }
+  .verdict.warn { background: rgba(186,117,23,0.1); color: #F0A830; border-color: rgba(186,117,23,0.25); }
+  .verdict.bad { background: rgba(226,75,74,0.1); color: #F07070; border-color: rgba(226,75,74,0.25); }
+
+  /* Breakdown */
+  .breakdown {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .breakdown-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .brow:last-child { border-bottom: none; }
+
+  .brow .lbl { color: var(--muted); }
+  .brow.total { background: rgba(255,255,255,0.03); }
+  .brow.total .lbl { color: var(--text); font-weight: 600; }
+  .brow.total .val { font-size: 14px; font-weight: 700; }
+
+  .neg { color: var(--danger); }
+  .pos { color: #4DD4A8; }
+
+  /* Payout note */
+  .payout-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .payout-note strong { color: var(--text); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* Color states */
+  .ok-color { color: #4DD4A8; }
+  .warn-color { color: #F0A830; }
+  .bad-color { color: var(--danger); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--dimmed);
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(0,94,255,0.12);
+    color: #6699FF;
+    border: 1px solid rgba(0,94,255,0.2);
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 8px;
+    letter-spacing: 0.06em;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Password Protection -->
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-box">
+    <h2>🔒 Protected</h2>
+    <p>This tool is for internal Displate use only.</p>
+    <input 
+      type="password" 
+      id="passwordInput" 
+      placeholder="Enter password"
+      autocomplete="off"
+    />
+    <button onclick="checkPassword()">Unlock</button>
+    <div class="password-error" id="passwordError">Incorrect password</div>
+  </div>
+</div>
+
+<div id="mainContent" style="display: none;">
+
+<header class="header">
+  <a class="logo" href="#">
+    <div class="logo-mark">
+      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="5" height="5" fill="white"/>
+        <rect x="8" y="1" width="5" height="5" fill="white"/>
+        <rect x="1" y="8" width="5" height="5" fill="white"/>
+        <rect x="8" y="8" width="5" height="5" fill="white" opacity="0.4"/>
+      </svg>
+    </div>
+    Displate
+  </a>
+  <span class="header-title">influencer deal · cpa model</span>
+</header>
+
+<main class="main">
+  <h1 class="page-title">Hybrid Influencer<br><span>CPA Calculator</span></h1>
+  <p class="page-desc">Models flat fee + CPA bonus deal structures against your media spend and nCAC target.</p>
+
+  <div class="grid">
+
+    <!-- Left: inputs -->
+    <div>
+      <div class="card">
+        <div class="section-label">Unit economics</div>
+
+        <div class="slider-group">
+          <div class="slider-top">
+            <span class="slider-name">AOV</span>
+            <span class="slider-value" id="aov-out">$115</span>
+          </div>
+          <input type="range" id="aov" min="60" max="200" step="1" value="115">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-top">
+            <span class="slider-name">Target nCAC</span>
+            <span class="slider-value" id="ncac-out">$80</span>
+          </div>
+          <input type="range" id="ncac" min="20" max="150" step="1" value="80">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-top">
+            <span class="slider-name">Gross margin</span>
+            <span class="slider-value" id="margin-out">55%</span>
+          </div>
+          <input type="range" id="margin" min="20" max="80" step="1" value="55">
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Hybrid deal structure</div>
+
+        <div class="slider-group">
+          <div class="slider-top">
+            <span class="slider-name">Flat fee — content rights</span>
+            <span class="slider-value" id="fee-out">$10,000</span>
+          </div>
+          <input type="range" id="fee" min="0" max="80000" step="500" value="10000">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-top">
+            <span class="slider-name">CPA bonus per order</span>
+            <span class="slider-value" id="cpa-bonus-out">$10</span>
+          </div>
+          <input type="range" id="cpa-bonus" min="0" max="50" step="1" value="10">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-top">
+            <span class="slider-name">Estimated orders from ads</span>
+            <span class="slider-value" id="orders-out">1,000</span>
+          </div>
+          <input type="range" id="orders" min="100" max="10000" step="100" value="1000">
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Paid media</div>
+
+        <div class="slider-group">
+          <div class="slider-top">
+            <span class="slider-name">Media spend CPA</span>
+            <span class="slider-value" id="media-cpa-out">$45</span>
+          </div>
+          <input type="range" id="media-cpa" min="5" max="120" step="1" value="45">
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: results -->
+    <div class="results-col">
+
+      <div class="big-metric">
+        <div class="big-metric-accent" id="accent"></div>
+        <div class="big-metric-label">Total nCAC</div>
+        <div class="big-metric-value" id="total-cac">$70</div>
+        <div class="big-metric-sub" id="cac-sub">vs $80 target</div>
+      </div>
+
+      <div class="mini-grid">
+        <div class="mini-metric">
+          <div class="mini-label">Influencer cost / order</div>
+          <div class="mini-value" id="inf-cost">$20</div>
+        </div>
+        <div class="mini-metric">
+          <div class="mini-label">Max media CPA</div>
+          <div class="mini-value" id="max-media">$60</div>
+        </div>
+        <div class="mini-metric">
+          <div class="mini-label">Net margin / order</div>
+          <div class="mini-value" id="net-margin">$43</div>
+        </div>
+        <div class="mini-metric">
+          <div class="mini-label">Headroom vs target</div>
+          <div class="mini-value" id="headroom">+$10</div>
+        </div>
+      </div>
+
+      <div class="verdict" id="verdict"></div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">Per-order breakdown</div>
+        <div class="brow"><span class="lbl">AOV</span><span class="val" id="b-aov">$115</span></div>
+        <div class="brow"><span class="lbl" id="b-gp-lbl">Gross profit (55%)</span><span class="val" id="b-gp">$63</span></div>
+        <div class="brow"><span class="lbl">— Media spend CPA</span><span class="val neg" id="b-media">−$45</span></div>
+        <div class="brow"><span class="lbl">— CPA bonus</span><span class="val neg" id="b-bonus">−$10</span></div>
+        <div class="brow"><span class="lbl" id="b-amort-lbl">— Flat fee amortised</span><span class="val neg" id="b-amort">−$10</span></div>
+        <div class="brow total"><span class="lbl">Net margin / order</span><span class="val" id="b-net">−$2</span></div>
+      </div>
+
+      <div class="payout-note" id="payout-note"></div>
+
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  Displate · Internal tool · Influencer performance marketing model
+</footer>
+
+<script>
+  const ids = ['aov','ncac','margin','fee','cpa-bonus','orders','media-cpa'];
+
+  const fmt = v => (v < 0 ? '-$' : '$') + Math.abs(Math.round(v)).toLocaleString();
+  const fmtPct = v => Math.round(v) + '%';
+  const fmtN = v => Math.round(v).toLocaleString();
+
+  function calc() {
+    const aov       = +document.getElementById('aov').value;
+    const ncac      = +document.getElementById('ncac').value;
+    const margin    = +document.getElementById('margin').value / 100;
+    const fee       = +document.getElementById('fee').value;
+    const cpaBonus  = +document.getElementById('cpa-bonus').value;
+    const orders    = +document.getElementById('orders').value;
+    const mediaCPA  = +document.getElementById('media-cpa').value;
+
+    document.getElementById('aov-out').textContent       = fmt(aov);
+    document.getElementById('ncac-out').textContent      = fmt(ncac);
+    document.getElementById('margin-out').textContent    = fmtPct(margin * 100);
+    document.getElementById('fee-out').textContent       = fmt(fee);
+    document.getElementById('cpa-bonus-out').textContent = fmt(cpaBonus);
+    document.getElementById('orders-out').textContent    = fmtN(orders);
+    document.getElementById('media-cpa-out').textContent = fmt(mediaCPA);
+
+    const contentAmort       = fee / orders;
+    const totalInfluencer    = contentAmort + cpaBonus;
+    const totalCAC           = mediaCPA + totalInfluencer;
+    const grossProfit        = aov * margin;
+    const netMargin          = grossProfit - totalCAC;
+    const headroom           = ncac - totalCAC;
+    const maxMediaCPA        = ncac - totalInfluencer;
+    const totalInfluencerPayout = fee + (cpaBonus * orders);
+
+    const status = totalCAC <= ncac
+      ? (headroom >= 12 ? 'ok' : 'warn')
+      : 'bad';
+
+    const statusColor = status === 'ok' ? '#4DD4A8' : status === 'warn' ? '#F0A830' : '#F07070';
+    const accentColor = status === 'ok' ? 'var(--green)' : status === 'warn' ? '#BA7517' : 'var(--danger)';
+
+    document.getElementById('total-cac').textContent = fmt(totalCAC);
+    document.getElementById('total-cac').className = 'big-metric-value ' + status + '-color';
+    document.getElementById('accent').style.background = accentColor;
+    document.getElementById('cac-sub').textContent = `vs ${fmt(ncac)} target · ${headroom >= 0 ? '+' : ''}${fmt(headroom)} headroom`;
+
+    document.getElementById('inf-cost').textContent = fmt(totalInfluencer);
+    document.getElementById('max-media').textContent = maxMediaCPA > 0 ? fmt(maxMediaCPA) : '—';
+    document.getElementById('max-media').className = 'mini-value ' + (maxMediaCPA <= 0 ? 'bad-color' : '');
+
+    document.getElementById('net-margin').textContent = fmt(netMargin);
+    document.getElementById('net-margin').className = 'mini-value ' + (netMargin >= 0 ? 'ok-color' : 'bad-color');
+
+    document.getElementById('headroom').textContent = (headroom >= 0 ? '+' : '') + fmt(headroom);
+    document.getElementById('headroom').className = 'mini-value ' + (status + '-color');
+
+    let msg = '';
+    if (status === 'ok')   msg = `✓  ${fmt(headroom)} under target. Media CPA can reach ${fmt(maxMediaCPA)} before breaching nCAC.`;
+    else if (status === 'warn') msg = `⚠  Within target but thin — only ${fmt(headroom)} of headroom. Any media CPA creep will push you over.`;
+    else msg = `✗  Total nCAC of ${fmt(totalCAC)} is ${fmt(Math.abs(headroom))} over your ${fmt(ncac)} target. Reduce CPA bonus, flat fee, or media CPA.`;
+
+    const vEl = document.getElementById('verdict');
+    vEl.className = 'verdict ' + status;
+    vEl.textContent = msg;
+
+    document.getElementById('b-aov').textContent = fmt(aov);
+    document.getElementById('b-gp-lbl').textContent = `Gross profit (${fmtPct(margin * 100)})`;
+    document.getElementById('b-gp').textContent = fmt(grossProfit);
+    document.getElementById('b-media').textContent = '−' + fmt(mediaCPA);
+    document.getElementById('b-bonus').textContent = '−' + fmt(cpaBonus);
+    document.getElementById('b-amort-lbl').textContent = `— Flat fee amortised (${fmt(fee)} ÷ ${fmtN(orders)})`;
+    document.getElementById('b-amort').textContent = '−' + fmt(contentAmort);
+
+    const bNet = document.getElementById('b-net');
+    bNet.textContent = fmt(netMargin);
+    bNet.className = 'val ' + (netMargin >= 0 ? 'ok-color' : 'bad-color');
+
+    document.getElementById('payout-note').innerHTML =
+      `Total influencer payout at ${fmtN(orders)} orders: <strong>${fmt(totalInfluencerPayout)}</strong><br>` +
+      `${fmt(fee)} flat + ${fmtN(orders)} × ${fmt(cpaBonus)} CPA bonus. ` +
+      `As volume scales, flat fee amortises — variable cost floor is ${fmt(cpaBonus + mediaCPA)} / order.`;
+  }
+
+  ids.forEach(id => document.getElementById(id).addEventListener('input', calc));
+  calc();
+</script>
+
+</div><!-- end mainContent -->
+
+<script>
+  // Password protection
+  const correctPassword = "holodeck"; // Change this password
+  
+  function checkPassword() {
+    const input = document.getElementById('passwordInput').value;
+    const error = document.getElementById('passwordError');
+    
+    if (input === correctPassword) {
+      document.getElementById('passwordOverlay').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      sessionStorage.setItem('influcalc_authenticated', 'true');
+    } else {
+      error.style.display = 'block';
+      setTimeout(() => error.style.display = 'none', 3000);
+    }
+  }
+  
+  // Check if already authenticated in this session
+  if (sessionStorage.getItem('influcalc_authenticated') === 'true') {
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+  }
+  
+  // Allow Enter key to submit
+  document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') checkPassword();
+  });
+</script>
+
+</body>
+</html>
